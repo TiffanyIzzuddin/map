@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wastetrack/page/explore.dart';
 import 'package:wastetrack/widget/bottom_nav_bar.dart';
 
 void main() {
@@ -26,6 +27,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
+  final List<Widget> _pages = [
+    ExplorePage(), // Page untuk Explore
+    Center(child: Text('Home Page')), // Page untuk Home
+    Center(child: Text('Profile Page')), // Page untuk Profile
+  ];
+
   void _onTabSelected(int index) {
     setState(() {
       _currentIndex = index;
@@ -35,15 +42,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Salomon Bottom Bar Example'),
-        ),
-        body: Center(
-          child: Text(
-            'Selected Tab: $_currentIndex',
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
+        body: _pages[_currentIndex],
         bottomNavigationBar: BottomNavBar(
             onTabSelected: _onTabSelected, currentIndex: _currentIndex));
   }
