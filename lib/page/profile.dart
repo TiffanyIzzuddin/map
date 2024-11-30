@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart'; // Import the swipeable package
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -56,18 +57,41 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Function to fetch data from Firestore
+  Stream<QuerySnapshot> _fetchData() {
+    return FirebaseFirestore.instance.collection('users').snapshots();
+  }
+
+  // Function to delete a document from Firestore
+  Future<void> _deleteData(String documentId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(documentId)
+          .delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data berhasil dihapus')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menghapus data: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile Page'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Form to enter user details
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -125,6 +149,54 @@ class _ProfilePageState extends State<ProfilePage> {
                   onPressed: _submitData,
                   child: Text('Submit'),
                 ),
+              ),
+              SizedBox(height: 32),
+              // Display saved user profiles
+              StreamBuilder<QuerySnapshot>(
+                stream: _fetchData(),
+                builder: (ctx, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  final data = snapshot.data?.docs ?? [];
+                  return ListView.builder(
+                    // Make sure ListView is inside a SizedBox to limit its size
+                    shrinkWrap:
+                        true, // Ensures the ListView doesn't take infinite height
+                    physics:
+                        NeverScrollableScrollPhysics(), // Prevent scrolling in ListView, it's already scrollable
+                    itemCount: data.length,
+                    itemBuilder: (ctx, index) {
+                      final doc = data[index];
+                      final user = doc.data() as Map<String, dynamic>;
+                      return Slidable(
+                        // Replace 'actionPane' with 'startActionPane' or 'endActionPane'
+                        startActionPane: ActionPane(
+                          motion: const ScrollMotion(),
+                          children: [
+                            SlidableAction(
+                              onPressed: (_) => _deleteData(doc.id),
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              icon: Icons.delete,
+                              label: 'Delete',
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          title: Text(user['name'] ?? 'No name'),
+                          subtitle: Text(
+                              'DOB: ${user['dateOfBirth']}, Gender: ${user['gender']}'),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
