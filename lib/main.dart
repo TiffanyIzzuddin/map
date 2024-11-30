@@ -1,8 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:wastetrack/page/explore.dart';
+import 'package:wastetrack/page/profile.dart';
 import 'package:wastetrack/widget/bottom_nav_bar.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Pastikan Flutter diinisialisasi
+  await Firebase.initializeApp(); // Inisialisasi Firebase
   runApp(MyApp());
 }
 
@@ -30,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     ExplorePage(), // Page untuk Explore
     Center(child: Text('Home Page')), // Page untuk Home
-    Center(child: Text('Profile Page')), // Page untuk Profile
+    ProfilePage(), // Page untuk Profile
   ];
 
   void _onTabSelected(int index) {
